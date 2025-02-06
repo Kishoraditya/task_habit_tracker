@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task & Habit Tracker</title>
+  <!-- PaperCSS CDN (v1.9.1) -->
+  <link rel="stylesheet" href="https://unpkg.com/papercss@1.9.1/dist/paper.min.css">
+  <!-- Custom style overrides -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body class="paper container">
+
+  <!-- Navigation -->
+  <nav class="row flex-space-between">
+    <section>
+      <h4><a href="/">Task & Habit Tracker</a></h4>
+    </section>
+    <section>
+      <a href="/">Home</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/docs">API Docs</a>
+      <a href="/logout">Logout</a>
+    </section>
+  </nav>
+
+  <!-- Content -->
+  <section>
+    {% block content %}{% endblock %}
+  </section>
+
+  <!-- Footer -->
+  <footer class="row flex-center">
+    <p>© 2025 Retro Tracker. All rights reserved.</p>
+  </footer>
+</body>
+</html>

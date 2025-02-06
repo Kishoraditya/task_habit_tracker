@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="sm-12 col card">
+    <h2>Admin Dashboard</h2>
+    <p>Restricted analytics overview</p>
+    <hr>
+    <h3>Daily Active Users (DAU): {{ dau.DAU }}</h3>
+    <h3>Tasks Completed Per Day: {{ tasks_per_day.tasks_completed_per_day }}</h3>
+    <h3>4-Week Retention: {{ retention['4_week_retention_percentage'] }}%</h3>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+/* Example custom overrides for PaperCSS or a "notebook" vibe */
+body.paper {
+    background: #fdfdfd url("https://raw.githubusercontent.com/dwyl/english-words/master/notebook-lines.png") repeat-y center top; /* Example lines image */
+    background-size: auto 50px;
+  }
+  
+  .card {
+    background-color: #fff8e1; /* a gentle paper color */
+    margin-bottom: 1rem;
+  }
+  
+  .card h2, .card h3 {
+    font-family: "Courier New", Courier, monospace; /* a retro typeface */
+  }
+  
+  .btn-primary {
+    background-color: #f39c12; /* a retro orange */
+    border-color: #e67e22;
+  }
+  
+  .btn-primary:hover {
+    background-color: #e67e22;
+  }
+  

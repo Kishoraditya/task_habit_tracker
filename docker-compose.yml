@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    command: gunicorn shoshin_app.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgresql://shoshinai_usr:password@postgres:5432/shoshinai_db

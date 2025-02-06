@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="sm-12 col card">
+    <h2>Hello, {{ user.email }}</h2>
+    <p>Create and manage your tasks below.</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="sm-12 col card">
+    <h3>Your Tasks</h3>
+    <ul>
+      {% for task in tasks %}
+        <li>
+          {% if task.completed %}
+            <del>{{ task.title }}</del>
+          {% else %}
+            {{ task.title }}
+            <a href="/complete_task/{{ task.id }}" class="btn-small">Complete</a>
+          {% endif %}
+          {% if task.description %}
+            <br><small>{{ task.description }}</small>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+  <div class="sm-12 col card">
+    <h3>Create a New Task</h3>
+    <form method="post" action="/create_task">
+      <div class="form-group">
+        <label for="title">Task Title</label>
+        <input type="text" name="title" required placeholder="New Task">
+      </div>
+      <div class="form-group">
+        <label for="description">Description (optional)</label>
+        <textarea name="description" rows="2"></textarea>
+      </div>
+      <button class="btn-primary" type="submit">Add Task</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
