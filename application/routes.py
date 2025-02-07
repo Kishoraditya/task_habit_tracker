@@ -322,5 +322,15 @@ def create_task(
 
     return RedirectResponse(url="/dashboard", status_code=302)
 
+@router.post("/sync_tasks")
+def sync_tasks(data: dict, db: Session = Depends(get_db)):
+    tasks = data.get('tasks', [])
+    # For demonstration purposes, log the received tasks.
+    import logging
+    logging.info(f"Received offline tasks to sync: {tasks}")
+    
+    # In a full implementation, iterate through tasks and add/update them in the database.
+    # Here we simply return a success response.
+    return {"status": "success", "synced": len(tasks)}
 
 

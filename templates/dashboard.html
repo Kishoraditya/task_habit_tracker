@@ -44,4 +44,24 @@
     </form>
   </div>
 </div>
+
+<script>
+  const taskForm = document.querySelector('form[action="/create_task"]');
+  taskForm.addEventListener('submit', function(e) {
+    if (!navigator.onLine) {
+      e.preventDefault();
+      // Create a task object from form fields
+      const task = {
+        title: e.target.elements.title.value,
+        description: e.target.elements.description.value,
+        created_at: new Date().toISOString()
+      };
+      saveTaskOffline(task);
+      alert("You are offline. The task will be synced once you are online.");
+      // Optionally, clear the form:
+      e.target.reset();
+    }
+  });
+</script>
+
 {% endblock %}

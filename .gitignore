@@ -174,3 +174,7 @@ cython_debug/
 .pypirc
 
 tracker.db
+
+terraform/terraform.tfvars
+terraform/terraform.tfstate
+terraform/terraform.tfplan

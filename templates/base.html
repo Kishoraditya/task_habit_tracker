@@ -6,7 +6,9 @@
   <!-- PaperCSS CDN (v1.9.1) -->
   <link rel="stylesheet" href="https://unpkg.com/papercss@1.9.1/dist/paper.min.css">
   <!-- Custom style overrides -->
+   
   <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="manifest" href="/static/manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body class="paper container">
@@ -33,5 +35,22 @@
   <footer class="row flex-center">
     <p>© 2025 Retro Tracker. All rights reserved.</p>
   </footer>
+  <!-- Load localForage from CDN for offline storage -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/static/js/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope:', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed:', err);
+          });
+      });
+    }
+  </script>
+  <!-- Load offline sync script -->
+  <script src="/static/js/offline-sync.js"></script>
 </body>
 </html>

@@ -1,0 +1,57 @@
+<LoginScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+        Label:
+            text: "Login to Task & Habit Tracker"
+            font_size: 24
+        TextInput:
+            id: email_input
+            hint_text: "Email"
+            multiline: False
+        TextInput:
+            id: password_input
+            hint_text: "Password"
+            password: True
+            multiline: False
+        Button:
+            text: "Login"
+            on_press: root.do_login()
+        Label:
+            text: root.status_message
+            color: 1,0,0,1
+
+<DashboardScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+        Label:
+            text: "Dashboard"
+            font_size: 24
+        Label:
+            text: "Welcome, " + (root.user.get('email') if root.user else "User")
+        ScrollView:
+            size_hint_y: 0.6
+            GridLayout:
+                id: tasks_grid
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                row_default_height: 40
+                row_force_default: True
+                # Dynamically display tasks
+                # You can later bind this to create Label widgets for each task.
+        BoxLayout:
+            size_hint_y: 0.2
+            TextInput:
+                id: new_task_input
+                hint_text: "New task title"
+                multiline: False
+            Button:
+                text: "Add Task"
+                on_press: root.add_task()
+        Label:
+            text: root.status_message
+            color: 1,0,0,1

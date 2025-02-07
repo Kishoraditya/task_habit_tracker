@@ -15,8 +15,11 @@ A lightweight web application (built with **FastAPI** and **SQLAlchemy**) for cr
 7. [Testing the Application](#testing-the-application)  
 8. [Endpoints & User Flow](#endpoints--user-flow)  
 9. [Live Demo (Optional)](#live-demo-optional)  
-10. [Future Roadmap](#future-roadmap)  
-11. [License](#license)  
+10. [Deployment & Hosting](#deployment--hosting)
+11. [Local Setup & Usage](#local-setup--usage)
+12. [Monitoring & Logging](#monitoring--logging)
+13. [Future Roadmap](#future-roadmap)  
+14. [License](#license)  
 
 ---
 
@@ -41,30 +44,49 @@ This repository demonstrates a **production-ready project structure** using Fast
 
 ## Features
 
-1. **User Registration**: Create new users and store credentials (currently stored in plain text — can be easily replaced with password hashing).
-2. **Task Management**:
-   - Create tasks for each user
-   - Retrieve tasks for each user
-   - Mark tasks as completed
-3. **Basic Analytics**:
-   - Daily Active Users (DAU) (dummy example)
-   - Tasks completed per day (dummy example)
-   - 4-week user retention (dummy example)
-4. **Referral Links**:
-   - Generate unique referral links to invite friends
-5. **API Documentation**:
-   - Interactive OpenAPI docs at `/docs`
+- **User Management:**  
+  - Register, log in, and log out.
+  - Secure password storage using Passlib (passwords are hashed).
+  
+- **Task Management:**  
+  - Create, view, and complete tasks.
+  - Dashboard view for user tasks.
+  
+- **Admin Monitoring:**  
+  - Restricted admin dashboard (requires an admin key) displaying dummy analytics.
+  
+- **Responsive UI/UX:**  
+  - Retro, notebook-style interface with a simple, mobile-friendly design.
+  
+- **Deployment & Monitoring:**  
+  - Hosted on Render with CI/CD via GitHub Actions.
+  - Basic logging integrated for monitoring application health.
+
+- **Mobile Client:**  
+  - A minimal Kivy client available for Android, iOS, and desktop packaging.
 
 ---
 
 ## Tech Stack
 
+- **Backend Framework:** FastAPI
+- **Database:** SQLite (default; can be replaced with PostgreSQL, etc.)
+- **ORM:** SQLAlchemy
+- **Templating:** Jinja2
+- **Password Hashing:** Passlib
+- **CI/CD:** GitHub Actions
+- **Hosting:** Render (free tier)
+- **Monitoring & Logging:** Python's built-in logging (viewable via Render dashboard)
 - **Language**: Python
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/)
 - **ORM**: [SQLAlchemy](https://www.sqlalchemy.org/)
 - **Database**: SQLite (swappable for Postgres, MySQL, etc. by changing `DB_URL` in `.env`)
 - **Testing**: [pytest](https://pytest.org/)
 - **Environment Management**: [python-dotenv](https://pypi.org/project/python-dotenv/)
+- **PWA & Offline:** Service Worker, Manifest, localForage (JavaScript)
+- **IPFS Integration:** ipfshttpclient (Python)
+- **Mobile Client:** Kivy
+- **Testing:** pytest, Selenium (for responsiveness)
 
 ---
 
@@ -72,7 +94,7 @@ This repository demonstrates a **production-ready project structure** using Fast
 
 A high-level view of the application architecture:
 
-```
+``` bash
 
  ┌─────────────┐
  │   Clients    │
@@ -226,37 +248,171 @@ If you decide to deploy this on a free platform (e.g., Render, Fly.io, Railway, 
 - **Live App URL**: [https://my-task-habit-tracker.onrender.com](https://my-task-habit-tracker.onrender.com) (Example)
 
 > Please note that the exact deployment steps vary based on the hosting platform. Typically, you need to:
-
-> 1. Connect your GitHub repository.
-
+> 1.Connect your GitHub repository
 > 2. Set environment variables (like `DB_URL`, `SECRET_KEY`) in the hosting dashboard.
-
 > 3. Provide a start command, e.g., `uvicorn application.main:app --host 0.0.0.0 --port 8000`.
+
+---
+
+## Deployment & Hosting
+
+### Hosted on Render
+
+The application is deployed on Render. To deploy your own instance:
+
+1. **Push the Code to GitHub/GitLab:**  
+   Ensure your project (including all source code, templates, and configuration files) is hosted on a Git repository.
+
+2. **Set Up GitHub Actions:**  
+   The repository includes a CI/CD workflow in `.github/workflows/ci.yml` that runs tests on every push to the `main` branch.
+
+3. **Create a New Web Service on Render:**
+   - Sign up/log in to [Render](https://render.com/).
+   - Click on **"New"** and select **"Web Service"**.
+   - Connect your repository and select the appropriate branch (typically `main`).
+   - **Build Command:**
+
+     ```bash
+
+     pip install -r requirements.txt
+
+     ```
+
+   - **Start Command:**  
+
+     ```bash
+
+     uvicorn application.main:app --host 0.0.0.0 --port 8000
+
+     ```
+
+   - **Environment Variables:**  
+     Configure the following variables in Render's dashboard (matching your local `.env`):
+     - `DB_URL`
+     - `SECRET_KEY`
+     - `ADMIN_KEY`
+  
+4. **Accessing the Live Application:**  
+   Once deployed, Render will assign you a URL (for example, `https://your-task-habit-tracker.onrender.com`). Use this URL to access the live app.
+
+---
+
+See [deployment.md](deployment.md) for a detailed deployment guide covering:
+
+- Deploying the web app on Render
+- Packaging the mobile client for Android (using Buildozer), iOS (using Kivy-ios), and desktop (using PyInstaller)
+- IPFS integration requirements
+
+---
+
+## Mobile Client
+
+A Kivy-based mobile client is included in the `mobile/` directory. To run locally:
+
+1. Navigate to the mobile directory:
+   bash
+   cd mobile
+   python main.py
+
+2. For Android, build the APK using Buildozer:
+
+   bash
+   buildozer -v android debug
+
+3. For desktop, package the app using PyInstaller:
+
+   bash
+   pyinstaller --onefile main.py
+
+Refer to the [deployment.md](deployment.md) for detailed packaging instructions.
+
+---
+
+## Local Setup & Usage
+
+### Prerequisites\
+
+- Python 3.9+
+- Git
+
+### Setup Instructions
+
+1. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/task_habit_tracker.git
+   cd task_habit_tracker
+   ```
+
+2. **Create and Activate a Virtual Environment:**
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate   # Windows: venv\Scripts\activate
+   ```
+
+3. **Install Dependencies:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure Environment Variables:**  
+   Create a `.env` file in the root directory with the following (example):
+
+   ```ini
+   DB_URL=sqlite:///./tracker.db
+   SECRET_KEY=mysecretkey
+   ADMIN_KEY=supersecretadminkey
+   ```
+
+5. **Run Tests:**
+
+   ```bash
+   python manage.py test
+   ```
+
+6. **Start the Application:**
+
+   ```bash
+   python manage.py run
+   ```
+
+   Open your browser and navigate to [http://localhost:8000](http://localhost:8000).
+
+---
+
+## Testing
+
+Comprehensive tests cover:
+
+- **Web API & PWA:** Using pytest for endpoints, manifest, service worker, and offline sync.
+- **Responsive UI:** Selenium tests simulate different screen sizes.
+- **IPFS Integration:** Tests to ensure task data is stored on IPFS.
+- **Mobile Client:** Manual testing guidelines and packaging instructions.
+  
+See [testing.md](testing.md) for complete details and commands to run the tests.
+
+## Monitoring & Logging
+
+- **Logging:**  
+  The application uses Python’s built-in logging (configured in `monitoring/logging_config.py`). Logs are printed to the console and can be viewed in the Render dashboard.
+
+- **Basic Admin Monitoring:**  
+  An admin dashboard is available at `/admin?admin_key=supersecretadminkey` (replace with your admin key). This dashboard shows dummy analytics (e.g., DAU, tasks per day, 4-week retention).
 
 ---
 
 ## Future Roadmap
 
-Below are some suggestions to expand or improve the application:
+For detailed future enhancements, see the [FUTURE_PLAN.md](FUTURE_PLAN.md) file. Upcoming phases include:
 
-1. **User Authentication**  
-   - Implement OAuth2 / JWT tokens for secure endpoints instead of plain text credentials.
-
-2. **Password Hashing**  
-   - Store hashed passwords with [Passlib](https://passlib.readthedocs.io/).
-
-3. **Push or Email Notifications**  
-   - Integrate with a scheduling system (e.g., [APScheduler](https://apscheduler.readthedocs.io/)) to send daily or weekly reminders to users.
-
-4. **Advanced Analytics**  
-   - Actually record user activity to calculate real DAU, retention, etc.
-   - Visualize user behavior with charts or dashboards.
-
-5. **Better UI**  
-   - Create a React, Vue, or plain HTML/JS frontend to interact with the FastAPI backend.
-
-6. **Deployment & CI/CD**  
-   - Automate tests and deployments using GitHub Actions or GitLab CI.
+- Enhanced UI/UX and offline capabilities (PWA support).
+- Rich list management and collaborative features.
+- AI/ML-driven task organization and recommendations.
+- Advanced scheduling, calendar integrations, and task dependencies.
+- Gamification, social integration, and advanced behavioral analytics.
+- Enterprise-level integrations and a plugin ecosystem.
 
 ---
 
@@ -265,10 +421,9 @@ Below are some suggestions to expand or improve the application:
 This project is under the [MIT License](https://opensource.org/licenses/MIT). Feel free to fork or copy for personal or commercial use.
 
 > **Disclaimer**: This is a sample reference application. For **production use**, remember to:
-
-> - Implement secure password hashing and authentication
-> - Use a robust database migration strategy
-> - Add proper monitoring and error handling
+> -Implement secure password hashing and authentication
+> -Use a robust database migration strategy
+> -Add proper monitoring and error handling
 
 ---
 
