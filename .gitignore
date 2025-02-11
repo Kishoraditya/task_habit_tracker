@@ -178,3 +178,7 @@ tracker.db
 terraform/terraform.tfvars
 terraform/terraform.tfstate
 terraform/terraform.tfplan
+
+temp/
+alembic.ini 
+

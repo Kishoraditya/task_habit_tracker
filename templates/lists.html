@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Your Task Lists</h2>
+  <h3>Owned Lists</h3>
+  <ul>
+    {% for lst in owned_lists %}
+      <li>
+        <a href="/lists/{{ lst.id }}">{{ lst.name }}</a> - {{ lst.description }}
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Shared With You</h3>
+  <ul>
+    {% for lst in shared_lists %}
+      <li>
+        <a href="/lists/{{ lst.id }}">{{ lst.name }}</a> - {{ lst.description }}
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Create New List</h3>
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+  <form method="post" action="/lists">
+    <label>Name:</label>
+    <input type="text" name="name" required>
+    <br>
+    <label>Description:</label>
+    <textarea name="description"></textarea>
+    <br>
+    <button type="submit">Create List</button>
+  </form>
+</div>
+{% endblock %}

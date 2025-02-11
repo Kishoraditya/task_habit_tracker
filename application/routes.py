@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, WebSocket
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
 from application.schemas import UserCreate, UserOut, TaskCreate, TaskOut
-from application.models import User, Task
+from application.models import User, Task, TaskList, list_shares
 from application.schemas import RegisterForm, LoginForm
 from application.utils import generate_referral_link, hash_password, verify_password
 from infrastructure.database import get_db
-from typing import List
 from typing import List
 import os
 
@@ -333,4 +332,177 @@ def sync_tasks(data: dict, db: Session = Depends(get_db)):
     # Here we simply return a success response.
     return {"status": "success", "synced": len(tasks)}
 
+
+
+# Utility function to get current user from session
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+# ----------------------------
+# Task List Endpoints
+# ----------------------------
+
+@router.get("/lists", response_class=HTMLResponse)
+def get_lists(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    owned_lists = db.query(TaskList).filter(TaskList.owner_id == user.id).all()
+    shared_lists = user.shared_lists
+    return templates.TemplateResponse(request, "lists.html", {
+        "request": request,
+        "owned_lists": owned_lists,
+        "shared_lists": shared_lists,
+        "user": user
+    })
+
+@router.post("/lists", response_class=HTMLResponse)
+def create_list(request: Request,
+                name: str = Form(...),
+                description: str = Form(""),
+                db: Session = Depends(get_db),
+                user: User = Depends(get_current_user)):
+    new_list = TaskList(name=name, description=description, owner_id=user.id)
+    db.add(new_list)
+    db.commit()
+    db.refresh(new_list)
+    return RedirectResponse(url="/lists", status_code=302)
+
+from application.blockchain import create_list_on_chain
+
+@router.post("/lists/dapp", response_class=HTMLResponse)
+def create_list_dapp(request: Request,
+                     name: str = Form(...),
+                     description: str = Form(""),
+                     db: Session = Depends(get_db),
+                     user: User = Depends(get_current_user)):
+    # Create the list off-chain first
+    new_list = TaskList(name=name, description=description, owner_id=user.id)
+    db.add(new_list)
+    db.commit()
+    db.refresh(new_list)
+    
+    # Optionally, record the list on-chain
+    # Assume user's private key is stored securely (for demo, use environment or a secure vault)
+    owner_private_key = os.getenv("USER_PRIVATE_KEY")
+    if owner_private_key:
+        receipt = create_list_on_chain(owner_private_key, name, description)
+        # You can store receipt.transactionHash or receipt details with the list in your DB if needed.
+    return RedirectResponse(url="/lists", status_code=302)
+
+
+@router.put("/lists/{list_id}", response_class=HTMLResponse)
+def update_list(request: Request,
+                list_id: int,
+                name: str = Form(...),
+                description: str = Form(""),
+                db: Session = Depends(get_db),
+                user: User = Depends(get_current_user)):
+    task_list = db.query(TaskList).filter(TaskList.id == list_id).first()
+    if not task_list:
+        raise HTTPException(status_code=404, detail="List not found")
+    if task_list.owner_id != user.id and not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    task_list.name = name
+    task_list.description = description
+    db.commit()
+    return RedirectResponse(url="/lists", status_code=302)
+
+@router.delete("/lists/{list_id}", response_class=HTMLResponse)
+def delete_list(request: Request,
+                list_id: int,
+                db: Session = Depends(get_db),
+                user: User = Depends(get_current_user)):
+    task_list = db.query(TaskList).filter(TaskList.id == list_id).first()
+    if not task_list:
+        raise HTTPException(status_code=404, detail="List not found")
+    if task_list.owner_id != user.id and not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    db.delete(task_list)
+    db.commit()
+    return RedirectResponse(url="/lists", status_code=302)
+
+@router.post("/lists/{list_id}/share", response_class=HTMLResponse)
+def share_list(request: Request,
+               list_id: int,
+               email: str = Form(...),
+               role: str = Form(...),
+               db: Session = Depends(get_db),
+               user: User = Depends(get_current_user)):
+    task_list = db.query(TaskList).filter(TaskList.id == list_id).first()
+    if not task_list:
+        raise HTTPException(status_code=404, detail="List not found")
+    if task_list.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to share this list")
+    share_user = db.query(User).filter(User.email == email).first()
+    if not share_user:
+        return templates.TemplateResponse(request, "lists.html", {"request": request, "error": "User not found"}, status_code=404)
+    # Append share_user to shared_users. Role is stored in association table (advanced: update association if needed)
+    task_list.shared_users.append(share_user)
+    db.commit()
+    return RedirectResponse(url="/lists", status_code=302)
+
+@router.get("/lists/{list_id}", response_class=HTMLResponse)
+def get_list_details(request: Request,
+                     list_id: int,
+                     db: Session = Depends(get_db),
+                     user: User = Depends(get_current_user)):
+    task_list = db.query(TaskList).filter(TaskList.id == list_id).first()
+    if not task_list:
+        raise HTTPException(status_code=404, detail="List not found")
+    if task_list.owner_id != user.id and user not in task_list.shared_users:
+        raise HTTPException(status_code=403, detail="Not authorized to view this list")
+    tasks = db.query(Task).filter(Task.list_id == list_id).all()
+    return templates.TemplateResponse(request, "list_details.html", {
+        "request": request,
+        "task_list": task_list,
+        "tasks": tasks,
+        "user": user
+    })
+
+@router.post("/lists/{list_id}/tasks", response_class=HTMLResponse)
+def create_task_in_list(request: Request,
+                        list_id: int,
+                        title: str = Form(...),
+                        description: str = Form(""),
+                        db: Session = Depends(get_db),
+                        user: User = Depends(get_current_user)):
+    task_list = db.query(TaskList).filter(TaskList.id == list_id).first()
+    if not task_list:
+        raise HTTPException(status_code=404, detail="List not found")
+    if task_list.owner_id != user.id and user not in task_list.shared_users:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    new_task = Task(title=title, description=description, user_id=user.id, list_id=list_id)
+    db.add(new_task)
+    db.commit()
+    return RedirectResponse(url=f"/lists/{list_id}", status_code=302)
+
+# ----------------------------
+# WebSocket for Real-Time Collaboration
+# ----------------------------
+
+# Global dictionary to store WebSocket connections for each list
+list_connections = {}
+
+@router.websocket("/ws/list/{list_id}")
+async def list_collaboration_ws(websocket: WebSocket, list_id: int, db: Session = Depends(get_db)):
+    # For simplicity, we use a query parameter "user_id" (in production use proper authentication)
+    await websocket.accept()
+    if list_id not in list_connections:
+        list_connections[list_id] = set()
+    list_connections[list_id].add(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Broadcast the message to all other connections in this list's room
+            for connection in list_connections[list_id]:
+                if connection != websocket:
+                    await connection.send_text(data)
+    except Exception as e:
+        print("WebSocket error:", e)
+    finally:
+        list_connections[list_id].remove(websocket)
 
