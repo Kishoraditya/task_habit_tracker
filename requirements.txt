@@ -48,7 +48,7 @@ pydantic_core==2.27.2
 Pygments==2.19.1
 pyinstaller==6.11.1
 pyinstaller-hooks-contrib==2025.1
-pypiwin32==223
+
 PySocks==1.7.1
 pytest==8.3.4
 python-dotenv==1.0.1
