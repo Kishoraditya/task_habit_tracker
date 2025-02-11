@@ -30,7 +30,7 @@ ipfshttpclient==0.7.0
 itsdangerous==2.2.0
 Jinja2==3.1.2
 Kivy==2.3.1
-kivy-deps.angle
+
 kivy-deps.glew==0.3.1
 Kivy-Garden==0.1.5
 kivy_deps.sdl2==0.8.0
